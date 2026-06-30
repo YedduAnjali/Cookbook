@@ -1,0 +1,8 @@
+/* MUI + theme.js drive nearly all styling now.
+   This file is only for global tweaks MUI doesn't handle. */
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body { margin: 0; }
+
+a { text-decoration: none; }

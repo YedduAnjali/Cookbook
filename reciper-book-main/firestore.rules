@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Anyone (even signed-out users) can browse recipes.
+    // Only signed-in users can create, and only owners can update/delete.
+    match /recipes/{recipeId} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0;
+
+      // Owners can fully edit their recipe.
+      // Other signed-in users can ONLY toggle their own uid in favoritedBy.
+      allow update: if request.auth != null && (
+        // Owner editing their own recipe
+        resource.data.ownerUid == request.auth.uid
+        ||
+        // Non-owner toggling only their own favorite
+        (
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['favoritedBy'])
+          && (
+            // Adding self
+            (
+              request.resource.data.favoritedBy.hasAll(resource.data.favoritedBy)
+              && request.resource.data.favoritedBy.toSet()
+                   .difference(resource.data.favoritedBy.toSet())
+                   == [request.auth.uid].toSet()
+            )
+            ||
+            // Removing self
+            (
+              resource.data.favoritedBy.hasAll(request.resource.data.favoritedBy)
+              && resource.data.favoritedBy.toSet()
+                   .difference(request.resource.data.favoritedBy.toSet())
+                   == [request.auth.uid].toSet()
+            )
+          )
+        )
+      );
+
+      allow delete: if request.auth != null
+        && resource.data.ownerUid == request.auth.uid;
+    }
+  }
+}

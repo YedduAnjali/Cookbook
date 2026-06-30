@@ -1,0 +1,19 @@
+node_modules
+dist
+.env
+.env.local
+.DS_Store
+*.log
+
+# Claude Code local files
+.claude/
+
+# Pencil's generated image cache
+images/
+
+# Vite transient config artifacts
+vite.config.js.timestamp-*
+vite.config.test.*
+
+# Firebase deploy cache
+.firebase/
